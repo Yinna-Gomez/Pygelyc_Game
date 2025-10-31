@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Environment variables (IMPORTANTE: Contiene contraseñas!)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Backups and temporary files
+*.backup
+*.bak
+*.tmp
+*.temp
+server.js.backup
+
+# Test and development files
+test-query.js
+create-docente.js
+*.test.js
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Editor directories
+.vscode/
+.idea/
+*.sublime-*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Optional: Database dumps
+*.sql.backup
+*.dump
