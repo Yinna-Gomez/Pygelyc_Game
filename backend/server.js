@@ -23,6 +23,8 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
+const algebraController = require('./algebraController');
+
 // Middleware de autenticación
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -83,28 +85,28 @@ const evaluateAttempt = (desafio, body) => {
                 // Lógica para Mundo 3: Propiedades de límites (suma, resta, producto, división)
                 // En este caso, la respuesta correcta se calcula dinámicamente en el frontend
                 // y se envía en limite_izquierdo y limite_derecho
-                
+
                 // limite_izquierdo = valor de lim f(x)
                 // limite_derecho = valor de lim g(x)
                 // respuesta_dada = resultado que el usuario predijo
-                
+
                 if (limite_izquierdo === undefined || limite_derecho === undefined) {
                     console.warn('Mundo 3: Se esperaban limite_izquierdo y limite_derecho');
                     return false;
                 }
-                
+
                 // Calcular la respuesta correcta según los límites individuales
                 // El frontend ya calculó y envió estos valores
                 const resultadoEsperado = respuesta_correcta; // Solo si existe un valor de referencia
-                
+
                 // Validar con tolerancia
                 const toleranciaOps = parametros.tolerancia || 0.01;
-                
+
                 // Si hay respuesta_correcta definida, usarla (para casos específicos)
                 if (resultadoEsperado !== null && resultadoEsperado !== undefined) {
                     return Math.abs(respuesta_dada - resultadoEsperado) <= toleranciaOps;
                 }
-                
+
                 // Si no hay respuesta_correcta, el backend confía en que el frontend
                 // calculó correctamente y solo verifica que sea un número válido
                 return !isNaN(respuesta_dada);
@@ -205,11 +207,11 @@ app.get('/api/mundos', authenticateToken, async (req, res) => {
                 porcentaje: p.porcentaje_completado
             };
         });
-        
+
         // Determinar qué mundos están desbloqueados para este estudiante
         const mundosConProgreso = mundos.map((mundo, index) => {
             const progresoMundo = progresoMap[mundo.id] || { estado: 'no_iniciado', porcentaje: 0 };
-            
+
             // El Mundo 1 siempre está desbloqueado
             let bloqueado = false;
             if (mundo.orden > 1) {
@@ -220,18 +222,18 @@ app.get('/api/mundos', authenticateToken, async (req, res) => {
                     bloqueado = !progresoAnterior || progresoAnterior.estado !== 'completado';
                 }
             }
-            
+
             return {
                 ...mundo,
                 estado: bloqueado ? 'bloqueado' : 'activo',
                 progreso: progresoMundo
             };
         });
-        
-        console.log('🌍 Mundos calculados para usuario', req.user.id, ':', 
+
+        console.log('🌍 Mundos calculados para usuario', req.user.id, ':',
             mundosConProgreso.map(m => `${m.nombre}: ${m.estado}`).join(', ')
         );
-        
+
         res.json(mundosConProgreso);
     } catch (error) {
         console.error('Error al obtener mundos:', error);
@@ -284,6 +286,37 @@ app.post('/api/progreso/iniciar', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Error al iniciar mundo' });
     }
 });
+
+// ==========================================================
+// === RUTAS DE PRÁCTICA LIBRE (ÁLGEBRA) ===
+// ==========================================================
+
+// Generar ejercicio (sin autenticación requerida)
+app.get('/api/algebra/ejercicio', (req, res) => {
+    // Crear un req.user vacío para la función si no hay token
+    req.user = req.user || null;
+    algebraController.generarEjercicio(req, res);
+});
+
+// Validar respuesta (autenticación opcional)
+app.post('/api/algebra/validar', (req, res, next) => {
+    // Intentar autenticar, pero no requerir
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (token) {
+        jwt.verify(token, process.env.JWT_SECRET || 'secret_key', (err, user) => {
+            if (!err) req.user = user;
+            algebraController.validarRespuesta(req, res);
+        });
+    } else {
+        req.user = null;
+        algebraController.validarRespuesta(req, res);
+    }
+});
+
+// Obtener estadísticas (requiere autenticación)
+app.get('/api/algebra/estadisticas', authenticateToken, algebraController.obtenerEstadisticas);
 
 // ==========================================================
 // === RUTA DE REGISTRO DE INTENTO (MODIFICADA) ===
@@ -346,7 +379,7 @@ app.post('/api/intentos', authenticateToken, async (req, res) => {
                 'SELECT * FROM progreso_estudiante WHERE id_estudiante = ? AND id_mundo = ?',
                 [req.user.id, id_mundo]
             );
-            
+
             console.log('🔍 Progreso encontrado:', progresoMundo.length > 0 ? 'SÍ' : 'NO');
 
             if (progresoMundo.length > 0) {
@@ -472,7 +505,7 @@ app.post('/api/pistas', authenticateToken, async (req, res) => {
         );
 
         let pistas = {};
-        
+
         if (desafios.length > 0 && desafios[0].tipo === 'propiedades_limites') {
             // Pistas específicas para Mundo 3
             pistas = {
@@ -543,8 +576,13 @@ app.get('/api/test', (req, res) => {
     res.json({ message: '¡Backend funcionando correctamente!' });
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
+module.exports = { pool };
+
+const HOST = '0.0.0.0'; // Escucha en todas las interfaces de red
+
+app.listen(PORT, HOST, () => {
     console.log(`✅ Servidor corriendo en puerto ${PORT}`);
-    console.log(`🌐 API disponible en http://localhost:${PORT}/api`);
+    console.log(`🌐 API disponible en:`);
+    console.log(`   Local:   http://localhost:${PORT}/api`);
+    //console.log(`   Red:     http://172.27.20.185:${PORT}/api`);
 });

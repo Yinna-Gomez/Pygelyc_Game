@@ -11,6 +11,7 @@ import Senalin from '../components/Senalin';
 // Configuración general del desafío para MUNDO 3
 const ID_DESAFIO = 5; // ID del desafío en la base de datos (siguiente después de 4)
 const API_URL = 'http://localhost:3001/api';
+//const API_URL = 'http://172.27.20.185:3001/api';
 
 interface Funcion {
   id: number;

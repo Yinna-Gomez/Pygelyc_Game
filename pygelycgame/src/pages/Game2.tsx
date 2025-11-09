@@ -14,6 +14,7 @@ const A = 0;
 const L_IZQUIERDA = -1;
 const L_DERECHA = 1;
 const API_URL = 'http://localhost:3001/api';
+//const API_URL = 'http://172.27.20.185:3001/api';
 
 interface Orbe {
   id: number;

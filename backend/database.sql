@@ -102,6 +102,19 @@ CREATE TABLE pistas_utilizadas (
     FOREIGN KEY (id_desafio) REFERENCES desafios(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS intentos_algebra (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_estudiante INT NULL,  -- NULL si no hay login
+    tipo_ejercicio ENUM('factorizacion', 'racionalizacion') NOT NULL,
+    nivel ENUM('basico', 'intermedio', 'avanzado') NOT NULL,
+    expresion_original TEXT NOT NULL,
+    respuesta_dada TEXT NOT NULL,
+    es_correcto BOOLEAN NOT NULL,
+    fecha_intento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_estudiante) REFERENCES usuarios(id) ON DELETE CASCADE,
+    INDEX idx_intentos_estudiante (id_estudiante, tipo_ejercicio)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insertar datos iniciales
 INSERT INTO mundos (nombre, descripcion, orden, estado) VALUES
 ('Mundo 1: Definición de Límite', 'Valle con río serpenteante. Mecánica: Plataformas móviles para aproximación sucesiva al valor límite.', 1, 'activo'),

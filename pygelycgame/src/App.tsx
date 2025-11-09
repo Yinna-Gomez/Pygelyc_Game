@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Homepage from './pages/Homepage';
+import PracticaAlgebra from './pages/PracticaAlgebra';
+import EjerciciosFactorizacion from './pages/EjerciciosFactorizacion';
+import EjerciciosRacionalizacion from './pages/EjerciciosRacionalizacion';
 import Login from './pages/Login';
 import DocenteDashboard from './pages/DocenteDashboard';
 import DocenteGamificacion from './pages/DocenteGamificacion';
@@ -25,6 +28,9 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Homepage />} />
+            <Route path="/practica" element={<PracticaAlgebra />} />
+            <Route path="/practica/factorizacion" element={<EjerciciosFactorizacion />} />
+            <Route path="/practica/racionalizacion" element={<EjerciciosRacionalizacion />} />
             <Route path="/login" element={<Login />} />
             <Route
                 path="/mundos"
